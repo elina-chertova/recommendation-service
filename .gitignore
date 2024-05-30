@@ -1,0 +1,10 @@
+/.idea
+/fakedata/
+/collector/rec.log
+/src/rec.log
+/src/.env
+/movies.csv
+/ratings.csv
+/preprocessing.py
+/trash/
+/data_test.py

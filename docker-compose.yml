@@ -1,0 +1,50 @@
+version: '3.10'
+
+services:
+  postgres_db_rec:
+    image: postgres:13
+    restart: always
+    container_name: postgres_db_rec
+    volumes:
+      - $HOME/postgresql/data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=123qwe
+      - POSTGRES_DB=movies_db
+    networks:
+      - rec-network
+
+  rec:
+    container_name: rec
+    image: rec
+    build:
+      context: .
+    command: gunicorn --workers=3 -b 0.0.0.0:8015 -k uvicorn.workers.UvicornWorker src.main:app
+    ports:
+      - ${REC_PORT}:8015
+    env_file:
+      - ./src/.env
+    depends_on:
+      - postgres_db_rec
+    networks:
+      - rec-network
+
+  nginx:
+    image: nginx:1.19.2
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /tmp/logs/nginx/:/var/log/nginx/
+    ports:
+      - "80:80"
+    depends_on:
+      - rec
+    networks:
+      - rec-network
+
+
+networks:
+  rec-network:
+    name: movie-network

@@ -1,0 +1,28 @@
+@startuml
+actor Client as User
+
+package RecommendationService {
+  component Nginx as nginx #b3ffe5
+  component FastAPI #Application
+  component ETL << Scheduler >>
+  database Postgres #fffab8
+  database Redis as redis #ff6666
+  cloud DropBox #1492FF
+}
+
+rectangle "UGC Service" as UGC #lightblue
+
+User --> nginx: HTTP Request
+nginx --> FastAPI: Forward Request
+FastAPI<--> redis: Get Recommendations
+
+ETL <--> UGC: 1.Get viewed movies
+ETL <--> DropBox: 2. Predict recommendations
+ETL --> Postgres: 3. Add rec history
+ETL --> redis: 4. Add recommendations to cache
+
+note top of ETL #white
+  (e.g., runs once per day)
+end note
+
+@enduml
